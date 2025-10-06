@@ -131,7 +131,7 @@ export default function SchemaVisualizer() {
   );
 
   return (
-    <div className="bg-background text-foreground h-[100vh] relative overflow-hidden">
+    <div className="bg-background text-foreground h-full relative overflow-hidden">
       <div className="absolute top-3 left-1/2 -translate-x-1/2 text-2xl sm:text-3xl font-bold text-primary select-none z-10">
         {schemaName}
       </div>
