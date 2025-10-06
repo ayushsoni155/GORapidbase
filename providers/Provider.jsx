@@ -7,6 +7,9 @@ import ClientTopLoader from "@/providers/ClientTopLoader";
 import { Toaster } from "@/components/ui/sonner";
 import { TableProvider } from "./TableContext";
 import SessionWatcher from "./SessionWatcher";
+import ProtectedRoute from "@/components/global/ProtectedRoute";
+
+const allowedRoutes = ["/", "/about"];
 
 export default function Provider({ children }) {
   return (
@@ -22,7 +25,9 @@ export default function Provider({ children }) {
             closeButton
           />
            <SessionWatcher />
+            <ProtectedRoute allowedRoutes={allowedRoutes}>
           {children}
+          </ProtectedRoute>
           </TableProvider>
         </ProjectProvider>
       </AuthProvider>

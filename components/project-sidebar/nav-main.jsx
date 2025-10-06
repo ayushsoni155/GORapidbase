@@ -54,15 +54,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
-// Hardcoded main nav items
+// Hardcoded main nav items (without project-dependent URLs)
 const navMain = [
   { title: "Analytics", url: "#", icon: SquareTerminal },
-  { title: "Tables", url: "#", icon: Table, hasSubMenu: true },
+  { title: "Tables", icon: Table, hasSubMenu: true },
   { title: "SQL Editor", url: "#", icon: FileCode2 },
-  { title: "Schema Visualization", url: "#", icon: Workflow },
+  { title: "Schema Visualization", icon: Workflow },
   {
     title: "Project Settings",
-    url: "#",
     icon: Settings,
     items: [
       { title: "General", url: "#" },
@@ -107,9 +106,10 @@ export function NavMain() {
     }
 
     try {
-    await axios.delete(`/projects/${selectedProject.project_id}/tables/${tableToDelete.table_name}`, {
-  data: { tableName: tableToDelete.table_name }
-});
+      await axios.delete(
+        `/projects/${selectedProject.project_id}/tables/${tableToDelete.table_name}`,
+        { data: { tableName: tableToDelete.table_name } }
+      );
 
       toast.success("Table deleted successfully.");
       setIsDeleteModalOpen(false);
@@ -130,6 +130,23 @@ export function NavMain() {
         <SidebarGroupLabel>Project</SidebarGroupLabel>
         <SidebarMenu>
           {navMain.map((item) => {
+            // Dynamic URL for Schema Visualization
+            if (item.title === "Schema Visualization") {
+              return (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild tooltip={item.title}>
+                    <Link
+                      href={`/project/${selectedProject?.project_id}/schema-visualization`}
+                    >
+                      {item.icon && <item.icon />}
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            }
+
+            // Tables collapsible menu
             if (item.title === "Tables") {
               return (
                 <Collapsible
@@ -155,6 +172,7 @@ export function NavMain() {
 
                     <CollapsibleContent>
                       <SidebarMenuSub>
+                        {/* Create Table link */}
                         <SidebarMenuSubItem>
                           <SidebarMenuSubButton asChild>
                             <Link
@@ -167,6 +185,7 @@ export function NavMain() {
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
 
+                        {/* List all tables */}
                         {isLoading ? (
                           <SkeletonLoader />
                         ) : tables && tables.length > 0 ? (
@@ -223,6 +242,7 @@ export function NavMain() {
               );
             }
 
+            // Project Settings collapsible
             if (item.items) {
               return (
                 <Collapsible key={item.title} asChild className="group/collapsible">
@@ -252,6 +272,7 @@ export function NavMain() {
               );
             }
 
+            // Default single menu item
             return (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton asChild tooltip={item.title}>
@@ -277,7 +298,7 @@ export function NavMain() {
               confirm, please type the table's name in the input below.
             </AlertDialogDescription>
             <div className="mt-4">
-            Table Name : <strong className="text-destructive">{tableToDelete?.table_name}</strong>
+              Table Name : <strong className="text-destructive">{tableToDelete?.table_name}</strong>
               <Input
                 type="text"
                 placeholder="Enter table name to confirm"

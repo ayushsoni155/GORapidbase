@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ArrowUpRight, CirclePlay } from "lucide-react";
-import { signOut } from "next-auth/react";
 import LoginPopup from "@/components/global/LoginPopup";
 import { useAuth } from "@/providers/AuthContext";
 import { useState } from "react";
