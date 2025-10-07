@@ -58,7 +58,7 @@ import { toast } from "sonner";
 const navMain = [
   { title: "Analytics", url: "#", icon: SquareTerminal },
   { title: "Tables", icon: Table, hasSubMenu: true },
-  { title: "SQL Editor", url: "#", icon: FileCode2 },
+  { title: "SQL Editor", icon: FileCode2 },
   { title: "Schema Visualization", icon: Workflow },
   {
     title: "Project Settings",
@@ -130,13 +130,47 @@ export function NavMain() {
         <SidebarGroupLabel>Project</SidebarGroupLabel>
         <SidebarMenu>
           {navMain.map((item) => {
-            // Dynamic URL for Schema Visualization
+            // Dynamic route for SQL Editor
+            if (item.title === "SQL Editor") {
+              return (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild tooltip={item.title}>
+                    <Link
+                      href={
+                        selectedProject
+                          ? `/project/${selectedProject.project_id}/sql-editor`
+                          : "#"
+                      }
+                      className={`${
+                        !selectedProject
+                          ? "opacity-50 cursor-not-allowed"
+                          : "hover:text-primary"
+                      }`}
+                    >
+                      {item.icon && <item.icon />}
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            }
+
+            // Dynamic route for Schema Visualization
             if (item.title === "Schema Visualization") {
               return (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild tooltip={item.title}>
                     <Link
-                      href={`/project/${selectedProject?.project_id}/schema-visualization`}
+                      href={
+                        selectedProject
+                          ? `/project/${selectedProject.project_id}/schema-visualization`
+                          : "#"
+                      }
+                      className={`${
+                        !selectedProject
+                          ? "opacity-50 cursor-not-allowed"
+                          : "hover:text-primary"
+                      }`}
                     >
                       {item.icon && <item.icon />}
                       <span>{item.title}</span>
@@ -293,12 +327,20 @@ export function NavMain() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action <strong className="text-destructive">cannot be undone</strong>. This will permanently delete the
-              table named <strong className="text-destructive">{tableToDelete?.table_name}</strong> and all of its data. To
-              confirm, please type the table's name in the input below.
+              This action{" "}
+              <strong className="text-destructive">cannot be undone</strong>. This
+              will permanently delete the table named{" "}
+              <strong className="text-destructive">
+                {tableToDelete?.table_name}
+              </strong>{" "}
+              and all of its data. To confirm, please type the table's name in the
+              input below.
             </AlertDialogDescription>
             <div className="mt-4">
-              Table Name : <strong className="text-destructive">{tableToDelete?.table_name}</strong>
+              Table Name :{" "}
+              <strong className="text-destructive">
+                {tableToDelete?.table_name}
+              </strong>
               <Input
                 type="text"
                 placeholder="Enter table name to confirm"

@@ -143,7 +143,9 @@ export default function SchemaVisualizer() {
     );
 
   return (
-    <div className="bg-background text-foreground h-full relative overflow-hidden">
+
+     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+    {/* <div className="bg-background text-foreground h-full relative overflow-hidden"> */}
       <div className="absolute top-3 left-1/2 -translate-x-1/2 text-2xl sm:text-3xl font-bold text-primary select-none z-10">
         {data?.schemaName || "Database Schema"}
       </div>
@@ -160,6 +162,7 @@ export default function SchemaVisualizer() {
       >
         <Background color="var(--muted-foreground)" gap={16} size={1} />
       </ReactFlow>
+    {/* </div> */}
     </div>
   );
 }
