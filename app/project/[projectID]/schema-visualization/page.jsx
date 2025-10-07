@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback } from "react";
 import {
   ReactFlow,
   Background,
@@ -14,10 +14,12 @@ import "@xyflow/react/dist/style.css";
 import { Database, Key, Link, Hash } from "lucide-react";
 import { useProjects } from "@/providers/ProjectContext";
 import axios from "@/utils/axios";
+import useSWR from "swr";
+
+const fetcher = (url) => axios.get(url).then((res) => res.data.data);
 
 const DatabaseSchemaNode = ({ data }) => {
-  const schema = data?.schema || []; // default to empty array
-
+  const schema = data?.schema || [];
   return (
     <div
       className="rounded-xl border shadow-sm bg-card text-foreground w-[230px] overflow-hidden"
@@ -67,51 +69,45 @@ export default function SchemaVisualizer() {
   const { selectedProject } = useProjects();
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [schemaName, setSchemaName] = useState("Database Schema");
 
-  useEffect(() => {
-    if (!selectedProject) return;
+  const projectId = selectedProject?.project_id;
+  const { data, error, isLoading } = useSWR(
+    projectId ? `/schema/${projectId}/schema-structure` : null,
+    fetcher,
+    { revalidateOnFocus: false, shouldRetryOnError: false }
+  );
 
-    const fetchSchema = async () => {
-      try {
-        const res = await axios.get(
-          `/schema/${selectedProject.project_id}/schema-structure`
-        );
+  // Build nodes & edges when data arrives
+  React.useEffect(() => {
+    if (!data) return;
+    const apiNodes = (data.nodes || []).map((node) => ({
+      id: node.id,
+      type: node.type || "databaseSchema",
+      position: node.position || { x: 0, y: 0 },
+      data: {
+        label: node.data?.label || "No Name",
+        schema: node.data?.schema || [],
+      },
+    }));
 
-        const data = res.data.data;
+    const apiEdges = (data.edges || []).map((edge) => ({
+      id: edge.id,
+      source: edge.source,
+      target: edge.target,
+      sourceHandle: edge.sourceHandle,
+      targetHandle: edge.targetHandle,
+      animated: edge.animated ?? true,
+      type: edge.type || "smoothstep",
+      style: edge.style || { stroke: "var(--primary)", strokeWidth: 2 },
+      markerEnd: edge.markerEnd || {
+        type: MarkerType.ArrowClosed,
+        color: "var(--primary)",
+      },
+    }));
 
-        const apiNodes = (data.nodes || []).map((node) => ({
-          id: node.id,
-          type: node.type || "databaseSchema",
-          position: node.position || { x: 0, y: 0 },
-          data: {
-            label: node.data?.label || "No Name",
-            schema: node.data?.schema || [],
-          },
-        }));
-
-        const apiEdges = (data.edges || []).map((edge) => ({
-          id: edge.id,
-          source: edge.source,
-          target: edge.target,
-          sourceHandle: edge.sourceHandle,
-          targetHandle: edge.targetHandle,
-          animated: edge.animated ?? true,
-          type: edge.type || "smoothstep",
-          style: edge.style || { stroke: "var(--primary)", strokeWidth: 2 },
-          markerEnd: edge.markerEnd || { type: MarkerType.ArrowClosed, color: "var(--primary)" },
-        }));
-         
-        setNodes(apiNodes);
-        setEdges(apiEdges);
-        setSchemaName(res.data.data.schemaName || "Database Schema");
-      } catch (error) {
-        console.error("Error fetching schema structure:", error);
-      }
-    };
-
-    fetchSchema();
-  }, [selectedProject]);
+    setNodes(apiNodes);
+    setEdges(apiEdges);
+  }, [data]);
 
   const onConnect = useCallback(
     (params) =>
@@ -130,10 +126,26 @@ export default function SchemaVisualizer() {
     []
   );
 
+  if (isLoading)
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-primary text-2xl font-semibold animate-pulse">
+          Loading Schema...
+        </div>
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="flex items-center justify-center h-full text-red-500">
+        Failed to load schema.
+      </div>
+    );
+
   return (
     <div className="bg-background text-foreground h-full relative overflow-hidden">
       <div className="absolute top-3 left-1/2 -translate-x-1/2 text-2xl sm:text-3xl font-bold text-primary select-none z-10">
-        {schemaName}
+        {data?.schemaName || "Database Schema"}
       </div>
 
       <ReactFlow
@@ -145,10 +157,6 @@ export default function SchemaVisualizer() {
         onConnect={onConnect}
         fitView
         fitViewOptions={{ padding: 0.3 }}
-        nodesDraggable
-        panOnDrag
-        zoomOnScroll
-        zoomOnPinch
       >
         <Background color="var(--muted-foreground)" gap={16} size={1} />
       </ReactFlow>
