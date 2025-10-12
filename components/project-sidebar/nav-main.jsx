@@ -69,7 +69,7 @@ const navMain = [
       { title: "API Keys", url: "#" },
     ],
   },
-  { title: "Audit Logs", url: "#", icon: ClipboardList },
+  { title: "Audit Logs", icon: ClipboardList },
 ];
 
 // Skeleton loader while fetching tables
@@ -179,7 +179,29 @@ export function NavMain() {
                 </SidebarMenuItem>
               );
             }
-
+              if (item.title === "Audit Logs") {
+              return (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild tooltip={item.title}>
+                    <Link
+                      href={
+                        selectedProject
+                          ? `/project/${selectedProject.project_id}/audit-log`
+                          : "#"
+                      }
+                      className={`${
+                        !selectedProject
+                          ? "opacity-50 cursor-not-allowed"
+                          : "hover:text-primary"
+                      }`}
+                    >
+                      {item.icon && <item.icon />}
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            }
             // Tables collapsible menu
             if (item.title === "Tables") {
               return (
